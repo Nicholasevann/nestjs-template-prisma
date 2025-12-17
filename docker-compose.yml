@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres
+    image: postgres:18
     container_name: nestjs-template-postgres
     ports:
       - '5432:5432'
@@ -9,9 +9,10 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: nestjs-template
     volumes:
-      - data_postgres:/var/lib/postgresql/data
+      - data_postgres:/var/lib/postgresql
+
   redis:
-    image: redis
+    image: redis:7
     container_name: nestjs-template-redis
     ports:
       - '6379:6379'
