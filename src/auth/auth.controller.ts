@@ -43,15 +43,4 @@ export class AuthController {
   async signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.register(signUpDto);
   }
-
-  @Get('me')
-  @Auth(AuthType.Bearer)
-  async getProfile(@Req() req: any) {
-    const userId = req.user?.userId;
-    if (!userId) {
-      return { message: 'User not found' };
-    }
-    const user = await this.usersService.findOne(userId);
-    return user;
-  }
 }

@@ -26,7 +26,7 @@ export class UsersService {
         password: hashedPassword,
       },
     });
-
+    delete savedUser.password;
     return {
       message: 'User created successfully',
       data: savedUser,
@@ -58,10 +58,10 @@ export class UsersService {
 
     const [users, total] = await this.prisma.$transaction([
       this.prisma.user.findMany({
-        where,
         orderBy: { [sortBy]: sortOrder.toLowerCase() as 'asc' | 'desc' },
         skip: (pageNumber - 1) * limitNumber,
         take: limitNumber,
+        where: { ...where, isDeleted: false },
       }),
       this.prisma.user.count({ where }),
     ]);
@@ -96,25 +96,35 @@ export class UsersService {
   }
 
   async update(id: string, updateUserDto: UpdateUserDto) {
-    await this.prisma.user.update({
+    if (updateUserDto.email) {
+      const userExist = await this.findOneByEmail(updateUserDto.email);
+      if (userExist && userExist.id !== id) {
+        throw new BadRequestException('Email already used');
+      }
+    }
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    }
+    const updateUser = await this.prisma.user.update({
       where: { id },
       data: updateUserDto,
     });
-
+    delete updateUser.password;
     return {
       message: 'User updated successfully',
-      data: null,
+      data: updateUser,
     };
   }
 
   async remove(id: string) {
-    await this.prisma.user.delete({
+    const user = await this.prisma.user.update({
       where: { id },
+      data: { isDeleted: true },
     });
 
     return {
       message: 'User deleted successfully',
-      data: null,
+      data: user,
     };
   }
 }

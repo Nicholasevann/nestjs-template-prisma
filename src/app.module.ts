@@ -7,16 +7,18 @@ import { AuthGuard } from './auth/guard/auth-guard';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from 'prisma/prisma.module';
+import { ProfileModule } from './profile/profile.module';
 
 @Module({
   imports: [
     UsersModule,
     AuthModule,
-    PrismaModule, 
+    PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true, // Makes the configuration available globally
       envFilePath: '.env', // Load environment variables from .env file
     }),
+    ProfileModule,
   ],
   controllers: [AppController],
   providers: [

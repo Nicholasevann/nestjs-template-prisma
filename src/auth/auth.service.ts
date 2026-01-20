@@ -27,8 +27,11 @@ export class AuthService {
     );
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
-
-    const payload = { sub: user.id, email: user.email };
+    if (user.isDeleted)
+      throw new UnauthorizedException(
+        'User account is inactive, please contact admin',
+      );
+    const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: jwtConfig().accessTokenTtl || '3600',
       audience: jwtConfig().audience,
@@ -71,7 +74,7 @@ export class AuthService {
       });
       if (!user) throw new UnauthorizedException('Invalid refresh token');
 
-      const newPayload = { sub: user.id, email: user.email };
+      const newPayload = { sub: user.id, email: user.email, role: user.role };
       const accessToken = await this.jwtService.signAsync(newPayload, {
         expiresIn: jwtConfig().accessTokenTtl || '3600',
         audience: jwtConfig().audience,
@@ -117,7 +120,7 @@ export class AuthService {
       },
     });
 
-    const payload = { id: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email, role: user.role };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: jwtConfig().accessTokenTtl || '3600',
       audience: jwtConfig().audience,
