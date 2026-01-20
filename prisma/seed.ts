@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient,Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -8,46 +8,20 @@ async function main() {
 
   const users = [
     {
-      email: 'alice@example.com',
+      email: 'admin@demo.com',
       password,
-      firstName: 'Alice',
-      lastName: 'Smith',
+      firstName: 'John',
+      lastName: 'Doe',
+      avatar: 'https://randomuser.me/api/portraits/men/1.jpg',
+      role: Role.ADMIN,
+    },
+    {
+      email: 'user@demo.com',
+      password,
+      firstName: 'Jane',
+      lastName: 'Roe',
       avatar: 'https://randomuser.me/api/portraits/women/1.jpg',
-    },
-    {
-      email: 'bob@example.com',
-      password,
-      firstName: 'Bob',
-      lastName: 'Johnson',
-      avatar: 'https://randomuser.me/api/portraits/men/2.jpg',
-    },
-    {
-      email: 'carol@example.com',
-      password,
-      firstName: 'Carol',
-      lastName: 'Williams',
-      avatar: 'https://randomuser.me/api/portraits/women/3.jpg',
-    },
-    {
-      email: 'dave@example.com',
-      password,
-      firstName: 'Dave',
-      lastName: 'Brown',
-      avatar: 'https://randomuser.me/api/portraits/men/4.jpg',
-    },
-    {
-      email: 'eve@example.com',
-      password,
-      firstName: 'Eve',
-      lastName: 'Davis',
-      avatar: 'https://randomuser.me/api/portraits/women/5.jpg',
-    },
-    {
-      email: 'frank@example.com',
-      password,
-      firstName: 'Frank',
-      lastName: 'Miller',
-      avatar: 'https://randomuser.me/api/portraits/men/6.jpg',
+      role: Role.USER,
     },
   ];
 
@@ -60,7 +34,7 @@ async function main() {
     });
   }
 
-  console.log('✅ Seeded 6 users');
+  console.log(`✅ Seeded ${users.length} users`);
 }
 
 main()

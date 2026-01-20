@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: postgres:18
+    image: postgres:16
+    # change depends on docker version
+    # image: postgres:18
     container_name: nestjs-template-postgres
     ports:
       - '5432:5432'

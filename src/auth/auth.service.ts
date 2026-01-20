@@ -5,6 +5,8 @@ import { SignInDto } from './dtos/signin.dto';
 import { RefreshToken } from './dtos/refresh-token.dto';
 import jwtConfig from './config/jwt.config';
 import { PrismaService } from 'prisma/prisma.service';
+import { Role } from '@prisma/client';
+import { SignUpDto } from './dtos/signup.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +28,7 @@ export class AuthService {
     if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
 
-    const payload = { id: user.id, email: user.email };
+    const payload = { sub: user.id, email: user.email };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: jwtConfig().accessTokenTtl || '3600',
       audience: jwtConfig().audience,
@@ -48,6 +50,7 @@ export class AuthService {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          role: user.role,
         },
       },
     };
@@ -88,7 +91,56 @@ export class AuthService {
         },
       };
     } catch (e) {
+      console.error('JWT verification error:', e);
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async register(signUpDto: SignUpDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: signUpDto.email },
+    });
+    if (existingUser) {
+      throw new UnauthorizedException('Email already in use');
+    }
+
+    const hashedPassword = await bcrypt.hash(signUpDto.password, 10);
+
+    const user = await this.prisma.user.create({
+      data: {
+        email: signUpDto.email,
+        password: hashedPassword,
+        firstName: signUpDto.firstName,
+        lastName: signUpDto.lastName,
+        avatar: signUpDto.avatar,
+        role: signUpDto.role || Role.USER, // Default to USER if not provided
+      },
+    });
+
+    const payload = { id: user.id, email: user.email };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: jwtConfig().accessTokenTtl || '3600',
+      audience: jwtConfig().audience,
+      issuer: jwtConfig().issuer,
+    });
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: jwtConfig().refreshTokenTtl || '86400',
+      audience: jwtConfig().audience,
+      issuer: jwtConfig().issuer,
+    });
+
+    return {
+      message: 'Registration successful',
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        },
+      },
+    };
   }
 }
